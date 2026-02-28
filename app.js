@@ -16,7 +16,6 @@
     fr: { identification:'Identification', authHint:'Entrez votre Nom et choisissez votre Entité.', valider:'Valider', installer:'Installer', installerHelp:'Installer ?', historique:'Historique', rafraichir:'Rafraîchir', changerEntite:'Changer entité', role:'Rôle', emetteur:'Émetteur', recepteur:'Récepteur', hh:'Heure (HH)', mm:'Minutes (MM)', actualiser:'Actualiser', numero:'N°', generer:'Générer', nom:'Nom', nomMaj:'Nom (MAJ)', fonction:'Fonction', entite:'Entité', message:'Message', enregistrer:'Enregistrer', retour:'Retour', exporter:'Exporter CSV', supprimerTout:'Supprimer tout', history:'Historique' },
     co: { identification:'Identificazione', authHint:"Mettite u vostru Nome è sceglite l'Entità.", valider:'Validà', installer:'Installà', installerHelp:'Installà ?', historique:'Storicu', rafraichir:'Rinfrescà', changerEntite:"Cambià entità", role:'Rolu', emetteur:'Emettitore', recepteur:'Ricevitore', hh:'Ora (HH)', mm:'Minuti (MM)', actualiser:'Attualizà', numero:'N°', generer:'Generà', nom:'Nome', nomMaj:'Nome (MAI)', fonction:'Funzione', entite:'Entità', message:'Messaghju', enregistrer:'Arregistrà', retour:'Ritornu', exporter:'Esporta CSV', supprimerTout:'Sguassà tuttu', history:'Storicu' }
   };
-  function t(){ const s=ls.get(STORAGE.settings,{lang:'fr'}); return i18n[s.lang||'fr']||i18n.fr; }
   function setText(id,txt){ const el=$(id); if(el) el.textContent=txt; }
   function applyLang(lang){ const L=i18n[lang]||i18n.fr;
     setText('btnInstall',L.installer); setText('mInstall',L.installer);
@@ -49,7 +48,6 @@
   window.addEventListener('hashchange', route);
 
   function setOptions(select, list){ select.innerHTML=''; list.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; select.appendChild(o); }); }
-  function showEl(el){ el.classList.remove('hidden'); } function hideEl(el){ el.classList.add('hidden'); }
 
   // --- Auth ---
   const authName=$('authName'), authEntity=$('authEntity');
@@ -60,9 +58,14 @@
   // --- App refs ---
   const roleSelect=$('roleSelect');
   const hh=$('hh'), mm=$('mm'); const btnNow=$('btnNow');
-  const emNum=$('emNum'), emGen=$('emGen'), emName=$('emName'), emFunc=$('emFunc'), emEntity=$('emEntity'), emFuncSel=$('emFuncSel');
-  const reNum=$('reNum'), reGen=$('reGen'), reName=$('reName'), reFunc=$('reFunc'), reEntity=$('reEntity'), reFuncSel=$('reFuncSel');
+  const emNum=$('emNum'), emGen=$('emGen'), emName=$('emName'), emFuncSel=$('emFuncSel'), emEntity=$('emEntity');
+  const reNum=$('reNum'), reGen=$('reGen'), reName=$('reName'), reFuncSel=$('reFuncSel'), reEntity=$('reEntity');
   const message=$('message');
+
+  // Numeric guards
+  function digitsOnly(max){ return function(){ this.value=this.value.replace(/\D/g,'').slice(0,max); }; }
+  [emNum,reNum].forEach(inp=>{ inp.addEventListener('input', digitsOnly(3)); });
+  hh.addEventListener('input', digitsOnly(2)); mm.addEventListener('input', digitsOnly(2));
 
   function zero2(n){ return (n<10?'0':'')+n }
   function setNow(){ const d=new Date(); hh.value=zero2(d.getHours()); mm.value=zero2(d.getMinutes()); }
@@ -75,40 +78,37 @@
   function saveSettings(){ const s=ls.get(STORAGE.settings,{}); s.lang=$('langSelect').value; s.role=roleSelect.value; ls.set(STORAGE.settings,s); applyLang(s.lang); $('mLangSelect').value=s.lang; }
   $('langSelect').addEventListener('change', saveSettings); $('mLangSelect').addEventListener('change', ()=>{ $('langSelect').value=$('mLangSelect').value; saveSettings(); });
 
-  function prepareApp(){ const user=ls.get(STORAGE.user,null); if(!user) return; loadSettings(); setNow(); configureByRole(); }
+  function prepareApp(){ const user=ls.get(STORAGE.user,null); if(!user) return; setNow(); configureByRole(); }
 
   function configureByRole(){
-    const user=ls.get(STORAGE.user,null); if(!user) return; const role=roleSelect.value; const ownFunc = FN_BY_ENTITY[user.entity] || '';
-    // Reset states
-    emFunc.readOnly=false; reFunc.readOnly=false; emEntity.disabled=false; reEntity.disabled=false;
-    // Reset collaborator function selectors visibility
-    hideEl(emFuncSel); hideEl(reFuncSel); showEl(emFunc); showEl(reFunc);
+    const user=ls.get(STORAGE.user,null); if(!user) return; const role=roleSelect.value; const ownFunc=FN_BY_ENTITY[user.entity]||'';
+
+    // Own block (select disabled to match sizes)
+    setOptions(emFuncSel, [ownFunc]); emFuncSel.disabled=true; setOptions(emEntity,[user.entity]); emEntity.disabled=true; emName.value=user.name.toUpperCase();
+
+    // Collaborator block (select enabled)
+    setOptions(reFuncSel, COLLAB_FUNCS); // always visible + enabled
 
     if(role==='emetteur'){
-      // Own block = Émetteur (verrouillé)
-      emName.value=user.name.toUpperCase(); emFunc.value=ownFunc; emFunc.readOnly=true; setOptions(emEntity,[user.entity]); emEntity.disabled=true;
-      // Collaborateur = Récepteur
-      reName.value=''; reFunc.value='';
-      setOptions(reFuncSel, COLLAB_FUNCS); hideEl(reFunc); showEl(reFuncSel);
-      // entités par défaut côté collaborateur (si toi=BAO => groupe, sinon BAO)
+      // collaborator = Récepteur
+      reName.value='';
       if(user.entity==='BAO'){ setOptions(reEntity, GROUP_ENTITIES); reEntity.disabled=false; }
       else { setOptions(reEntity, ['BAO']); reEntity.value='BAO'; reEntity.disabled=true; }
       emGen.style.display='inline-block'; reGen.style.display='none';
     } else {
-      // Own block = Récepteur (verrouillé)
-      reName.value=user.name.toUpperCase(); reFunc.value=ownFunc; reFunc.readOnly=true; setOptions(reEntity,[user.entity]); reEntity.disabled=true;
-      // Collaborateur = Émetteur
-      emName.value=''; emFunc.value='';
-      setOptions(emFuncSel, COLLAB_FUNCS); hideEl(emFunc); showEl(emFuncSel);
-      if(user.entity==='BAO'){ setOptions(emEntity, GROUP_ENTITIES); emEntity.disabled=false; }
-      else { setOptions(emEntity, ['BAO']); emEntity.value='BAO'; emEntity.disabled=true; }
+      // collaborator = Émetteur
+      reName.value=user.name.toUpperCase(); // own as receiver
+      setOptions(emFuncSel,[ownFunc]); // already set
+      // Swap: collaborator side uses the other select
+      setOptions(emEntity, (user.entity==='BAO')? GROUP_ENTITIES : ['BAO']); emEntity.disabled=(user.entity!=='BAO');
+      // For collaborator function on Émetteur side we use reFuncSel? Keep reFuncSel as the collaborator selector logically bound in rules below
       emGen.style.display='none'; reGen.style.display='inline-block';
     }
     applyCollaboratorFuncRules();
   }
   roleSelect.addEventListener('change', ()=>{ saveSettings(); configureByRole(); });
 
-  function getCollaboratorFunc(){ return (roleSelect.value==='emetteur' ? reFuncSel.value : emFuncSel.value).toUpperCase(); }
+  function getCollaboratorFunc(){ return (roleSelect.value==='emetteur' ? reFuncSel.value : reFuncSel.value).toUpperCase(); }
   function getCollaboratorEntitySelect(){ return (roleSelect.value==='emetteur' ? reEntity : emEntity); }
 
   function applyCollaboratorFuncRules(){
@@ -119,14 +119,12 @@
       else if(f==='CEX'){ setOptions(entitySelect, ['BAO']); entitySelect.value='BAO'; entitySelect.disabled=true; }
       else { setOptions(entitySelect, GROUP_ENTITIES); entitySelect.disabled=false; }
     } else {
-      // Toi ≠ BAO
       if(f==='CCO'){ setOptions(entitySelect, ['DELCO']); entitySelect.value='DELCO'; entitySelect.disabled=true; }
       else if(f==='CEX'){ setOptions(entitySelect, ['BAO']); entitySelect.value='BAO'; entitySelect.disabled=true; }
       else { setOptions(entitySelect, ['BAO']); entitySelect.value='BAO'; entitySelect.disabled=true; }
     }
   }
   reFuncSel.addEventListener('change', applyCollaboratorFuncRules);
-  emFuncSel.addEventListener('change', applyCollaboratorFuncRules);
 
   // Generators
   function loadCounters(){ return ls.get(STORAGE.counters,{}); }
@@ -136,7 +134,7 @@
   reGen.addEventListener('click', ()=>{ const user=ls.get(STORAGE.user,null); if(!user) return; if(roleSelect.value!=='recepteur'){ alert('Le générateur actif est côté Émetteur'); return; } reNum.value = nextNumberFor(user.entity,'recepteur'); });
 
   // Refresh form
-  function doRefresh(){ roleSelect.value='emetteur'; hh.value=mm.value=''; emNum.value=emName.value=emFunc.value=''; reNum.value=reName.value=reFunc.value=''; message.value=''; const user=ls.get(STORAGE.user,null); if(user){ emName.value=user.name.toUpperCase(); } configureByRole(); setNow(); saveSettings(); }
+  function doRefresh(){ const user=ls.get(STORAGE.user,null); if(!user) return; roleSelect.value='emetteur'; hh.value=mm.value=''; emNum.value=''; reNum.value=''; reName.value=''; message.value=''; configureByRole(); setNow(); saveSettings(); }
   $('btnRefresh').addEventListener('click', doRefresh); $('mRefresh').addEventListener('click', ()=>{ closeMenu(); doRefresh(); });
 
   // Change entity -> go auth immediately
@@ -147,19 +145,15 @@
   function getHistory(){ return ls.get(STORAGE.history,[]); }
   function setHistory(list){ ls.set(STORAGE.history,list); }
   function fillHistory(){ const tbody=document.querySelector('#historyTable tbody'); tbody.innerHTML=''; const hist=getHistory(); for(const row of hist){ const tr=document.createElement('tr'); const cells=[row.time,row.emNum,row.emName,row.emFunc,row.emEntity,row.reNum,row.reName,row.reFunc,row.reEntity,row.message]; cells.forEach(c=>{ const td=document.createElement('td'); td.textContent=c??''; tr.appendChild(td); }); tbody.appendChild(tr); } }
-  $('btnHistory').addEventListener('click', ()=>{ location.hash='#/history'; route(); }); $('mHistory').addEventListener('click', ()=>{ closeMenu(); location.hash='#/history'; route(); }); $('btnBack').addEventListener('click', ()=>{ location.hash='#/app'; route(); });
+  $('btnHistory').addEventListener('click', ()=>{ location.hash='#/history'; route(); });
+  $('mHistory').addEventListener('click', ()=>{ closeMenu(); location.hash='#/history'; route(); });
+  $('btnBack').addEventListener('click', ()=>{ location.hash='#/app'; route(); });
 
   $('btnClearAll').addEventListener('click', ()=>{ if(!confirm("Supprimer tout l'historique ?")) return; setHistory([]); fillHistory(); });
-  $('btnExport').addEventListener('click', ()=>{ const hist=getHistory(); const head=['heure','n_emetteur','nom_emetteur','fonction_emetteur','entite_emetteur','n_recepteur','nom_recepteur','fonction_recepteur','entite_recepteur','message']; const rows=hist.map(r=>[r.time,r.emNum,r.emName,r.emFunc,r.emEntity,r.reNum,r.reName,r.reFunc,r.reEntity,(r.message||'').replace(/\n/g,' ')]); const csv=[head.join(';')].concat(rows.map(a=>a.map(v=>`"${(v??'').toString().replace('"','""')}"`).join(';'))).join('\n'); const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='missaghji_history.csv'; a.click(); URL.revokeObjectURL(url); });
+  $('btnExport').addEventListener('click', ()=>{ const hist=getHistory(); const head=['heure','n_emetteur','nom_emetteur','fonction_emetteur','entite_emetteur','n_recepteur','nom_recepteur','fonction_recepteur','entite_recepteur','message']; const rows=hist.map(r=>[r.time,r.emNum,r.emName,'CEX', (ls.get(STORAGE.user,null)||{}).entity, r.reNum,r.reName,r.reFunc,r.reEntity,(r.message||'').replace(/\n/g,' ')]); const csv=[head.join(';')].concat(rows.map(a=>a.map(v=>`"${(v??'').toString().replace('"','""')}"`).join(';'))).join('\n'); const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='missaghji_history.csv'; a.click(); URL.revokeObjectURL(url); });
 
   // Save
-  $('btnSave').addEventListener('click', ()=>{ const user=ls.get(STORAGE.user,null); if(!user){ alert("Identifiez-vous d'abord"); location.hash='#/auth'; route(); return; } const time=`${(hh.value||'').padStart(2,'0')}:${(mm.value||'').padStart(2,'0')}`; const collaboratorFunc = (roleSelect.value==='emetteur') ? (reFuncSel.value||'') : (emFuncSel.value||''); const rec={ time, emNum:(emNum.value||'').trim(), emName:(emName.value||'').trim().toUpperCase(), emFunc:(emFunc.value||'').trim(), emEntity: emEntity.disabled ? (ls.get(STORAGE.user,null)||{}).entity : emEntity.value, reNum:(reNum.value||'').trim(), reName:(reName.value||'').trim().toUpperCase(), reFunc: collaboratorFunc.trim(), reEntity: reEntity.disabled ? (ls.get(STORAGE.user,null)||{}).entity : reEntity.value, message:(message.value||'').trim() };
-    if(!rec.message){ alert('Message vide'); return; }
-    if(!rec.emName || !rec.reName){ alert('Nom émetteur et nom récepteur requis'); return; }
-    const hist=getHistory(); hist.push(rec); setHistory(hist);
-    const hint=$('saveHint'); hint.textContent=t().enregistrer+' ✓'; setTimeout(()=>hint.textContent='',1200);
-    doRefresh(); // refresh after save
-  });
+  $('btnSave').addEventListener('click', ()=>{ const user=ls.get(STORAGE.user,null); if(!user){ alert("Identifiez-vous d'abord"); location.hash='#/auth'; route(); return; } if(!(emName.value||'').trim() || !(reName.value||'').trim()){ alert('Nom émetteur et nom récepteur requis'); return; } const time=`${(hh.value||'').padStart(2,'0')}:${(mm.value||'').padStart(2,'0')}`; const collabFunc = reFuncSel.value||''; const rec={ time, emNum:(emNum.value||'').trim(), emName:(emName.value||'').trim().toUpperCase(), emFunc: (FN_BY_ENTITY[user.entity]||''), emEntity: user.entity, reNum:(reNum.value||'').trim(), reName:(reName.value||'').trim().toUpperCase(), reFunc: collabFunc.trim(), reEntity: reEntity.value, message:(message.value||'').trim() }; if(!rec.message){ alert('Message vide'); return; } const hist=getHistory(); hist.push(rec); setHistory(hist); const hint=$('saveHint'); hint.textContent='Enregistré ✓'; setTimeout(()=>hint.textContent='',1200); doRefresh(); });
 
   // Menu
   const menuWrap=$('menuWrap'); const btnMenu=$('btnMenu');
@@ -167,11 +161,14 @@
   function closeMenu(){ menuWrap.classList.remove('open'); }
   document.addEventListener('click', (e)=>{ if(!menuWrap.contains(e.target)) closeMenu(); });
 
-  // Install
-  let deferredPrompt=null;
-  window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt=e; $('btnInstall').classList.remove('hidden'); $('mInstall').classList.remove('hidden'); $('btnInstallHelp').classList.add('hidden'); $('mInstallHelp').classList.add('hidden'); });
-  function promptInstall(){ if(!deferredPrompt) return; deferredPrompt.prompt(); deferredPrompt.userChoice.finally(()=>{ deferredPrompt=null; $('btnInstall').classList.add('hidden'); $('mInstall').classList.add('hidden'); }); }
-  $('btnInstall').addEventListener('click', ()=>{ promptInstall(); }); $('mInstall').addEventListener('click', ()=>{ closeMenu(); promptInstall(); });
+  // Install (fix)
+  let deferredPrompt=null; function updateInstallButtons(visible){ const ids=['btnInstall','mInstall']; ids.forEach(id=>{ const el=$(id); if(el) el.classList[visible?'remove':'add']('hidden'); }); const helpIds=['btnInstallHelp','mInstallHelp']; helpIds.forEach(id=>{ const el=$(id); if(el) el.classList[visible?'add':'remove']('hidden'); }); }
+  window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt=e; updateInstallButtons(true); });
+  function promptInstall(){ if(!deferredPrompt){ alert("Installation non disponible pour l'instant. Utilisez le bouton d'aide."); return; } deferredPrompt.prompt(); deferredPrompt.userChoice.finally(()=>{ deferredPrompt=null; updateInstallButtons(false); }); }
+  $('btnInstall').addEventListener('click', ()=>{ promptInstall(); });
+  $('mInstall').addEventListener('click', ()=>{ closeMenu(); promptInstall(); });
+  $('btnInstallHelp').addEventListener('click', ()=>{ alert("iPhone/iPad : Partager ▸ Ajouter à l'écran d'accueil.\nAndroid : menu ⋮ ▸ Ajouter à l'écran d'accueil."); });
+  $('mInstallHelp').addEventListener('click', ()=>{ closeMenu(); alert("iPhone/iPad : Partager ▸ Ajouter à l'écran d'accueil.\nAndroid : menu ⋮ ▸ Ajouter à l'écran d'accueil."); });
 
   document.addEventListener('DOMContentLoaded', ()=>{ fillAuth(); const s=ls.get(STORAGE.settings,{lang:'fr',role:'emetteur'}); applyLang(s.lang||'fr'); const user=ls.get(STORAGE.user,null); if(user){ authName.value=user.name; authEntity.value=user.entity; } route(); });
 })();

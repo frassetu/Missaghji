@@ -61,7 +61,7 @@
       <p class="small" id="authHint">Entrez votre <strong>Nom</strong> et choisissez votre <strong>Entité</strong>.</p>
       <div>
         <label for="authName" id="labelAuthName">Nom</label>
-        <input id="authName" autocomplete="name" placeholder="VOTRE NOM (MAJ)" />
+        <input id="authName" autocomplete="name" placeholder="VOTRE NOM (MAJ)" required />
       </div>
       <div style="margin-top:12px">
         <label for="authEntity" id="labelAuthEntity">Entité</label>
@@ -89,12 +89,12 @@
               <label for="hh" id="labelHH">Heure (HH)</label>
               <input id="hh" inputmode="numeric" maxlength="2" placeholder="HH" />
             </div>
-            <div style="align-self:end">
-              <button class="btn iconbtn" id="btnNow" title="Actualiser"><span>↻</span></button>
-            </div>
             <div>
               <label for="mm" id="labelMM">Minutes (MM)</label>
               <input id="mm" inputmode="numeric" maxlength="2" placeholder="MM" />
+            </div>
+            <div style="align-self:end">
+              <button class="btn iconbtn" id="btnNow" title="Actualiser"><span>↻</span></button>
             </div>
           </div>
         </div>
@@ -114,20 +114,19 @@
             </div>
             <div>
               <label for="emName" id="labelEmName">Nom</label>
-              <input id="emName" placeholder="NOM ÉMETTEUR (MAJ)" />
+              <input id="emName" placeholder="NOM ÉMETTEUR (MAJ)" required />
             </div>
           </div>
           <div class="row-compact">
             <div>
-              <label for="emFunc" id="labelEmFunc">Fonction</label>
-              <input id="emFunc" placeholder="Fonction" />
+              <label for="emFuncSel" id="labelEmFunc">Fonction</label>
+              <select id="emFuncSel" disabled></select>
             </div>
             <div>
               <label for="emEntity" id="labelEmEntity">Entité</label>
-              <select id="emEntity"></select>
+              <select id="emEntity" disabled></select>
             </div>
           </div>
-          <select id="emFuncSel" class="hidden"></select>
         </div>
 
         <!-- RÉCEPTEUR -->
@@ -143,20 +142,19 @@
             </div>
             <div>
               <label for="reName" id="labelReName">Nom (MAJ)</label>
-              <input id="reName" placeholder="NOM RÉCEPTEUR (MAJ)" />
+              <input id="reName" placeholder="NOM RÉCEPTEUR (MAJ)" required />
             </div>
           </div>
           <div class="row-compact">
             <div>
-              <label for="reFunc" id="labelReFunc">Fonction</label>
-              <input id="reFunc" placeholder="Fonction" />
+              <label for="reFuncSel" id="labelReFunc">Fonction</label>
+              <select id="reFuncSel"></select>
             </div>
             <div>
               <label for="reEntity" id="labelReEntity">Entité</label>
               <select id="reEntity"></select>
             </div>
           </div>
-          <select id="reFuncSel" class="hidden"></select>
         </div>
       </div>
 
