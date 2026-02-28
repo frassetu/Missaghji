@@ -33,7 +33,6 @@
         <button id="btnInstall" class="hidden">Installer</button>
         <button id="btnInstallHelp" class="ghost">Installer ?</button>
         <button id="btnHistory">Historique</button>
-        <button id="btnRefresh" class="ghost">Rafraîchir</button>
         <button id="btnChangeEntity" class="secondary">Changer entité</button>
         <select id="langSelect" title="Langue">
           <option value="fr" selected>FR</option>
@@ -44,7 +43,6 @@
         <button id="mInstall" class="hidden">Installer</button>
         <button id="mInstallHelp" class="ghost">Installer ?</button>
         <button id="mHistory">Historique</button>
-        <button id="mRefresh" class="ghost">Rafraîchir</button>
         <button id="mChangeEntity" class="secondary">Changer entité</button>
         <select id="mLangSelect" title="Langue">
           <option value="fr" selected>FR</option>
@@ -137,7 +135,7 @@
               <label for="reNum" id="labelReNum">N°</label>
               <input id="reNum" inputmode="numeric" placeholder="Numéro" />
             </div>
-            <div style="align-self:end">
+            <div style="align-self=end">
               <button class="btn iconbtn" id="reGen" title="Générer"><span>↻</span></button>
             </div>
             <div>
@@ -161,8 +159,9 @@
       <div class="card">
         <h3 id="titleMessage">Message</h3>
         <textarea id="message" placeholder="Saisissez votre message (illimité)"></textarea>
-        <div class="row" style="margin-top:12px">
+        <div class="row" style="margin-top:12px;gap:10px">
           <button class="btn" id="btnSave">Enregistrer</button>
+          <button class="btn secondary" id="btnRefreshInline">Rafraîchir</button>
           <span class="small" id="saveHint"></span>
         </div>
       </div>
