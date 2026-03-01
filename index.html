@@ -117,12 +117,23 @@
           </div>
           <div class="row-compact">
             <div>
-              <label for="emFuncSel" id="labelEmFunc">Fonction</label>
-              <select id="emFuncSel" disabled></select>
+              <label for="emFuncOwn" id="labelEmFunc">Fonction</label>
+              <select id="emFuncOwn" disabled></select>
             </div>
             <div>
-              <label for="emEntity" id="labelEmEntity">Entité</label>
-              <select id="emEntity" disabled></select>
+              <label for="emEntityOwn" id="labelEmEntity">Entité</label>
+              <select id="emEntityOwn" disabled></select>
+            </div>
+          </div>
+          <!-- Collaborateur si rôle = recepteur -->
+          <div class="row-compact hidden" id="emColRow">
+            <div>
+              <label for="emFuncCol">Fonction</label>
+              <select id="emFuncCol"></select>
+            </div>
+            <div>
+              <label for="emEntityCol">Entité</label>
+              <select id="emEntityCol"></select>
             </div>
           </div>
         </div>
@@ -145,12 +156,23 @@
           </div>
           <div class="row-compact">
             <div>
-              <label for="reFuncSel" id="labelReFunc">Fonction</label>
-              <select id="reFuncSel"></select>
+              <label for="reFuncOwn">Fonction</label>
+              <select id="reFuncOwn" disabled></select>
             </div>
             <div>
-              <label for="reEntity" id="labelReEntity">Entité</label>
-              <select id="reEntity"></select>
+              <label for="reEntityOwn">Entité</label>
+              <select id="reEntityOwn" disabled></select>
+            </div>
+          </div>
+          <!-- Collaborateur si rôle = emetteur -->
+          <div class="row-compact hidden" id="reColRow">
+            <div>
+              <label for="reFuncCol">Fonction</label>
+              <select id="reFuncCol"></select>
+            </div>
+            <div>
+              <label for="reEntityCol">Entité</label>
+              <select id="reEntityCol"></select>
             </div>
           </div>
         </div>
