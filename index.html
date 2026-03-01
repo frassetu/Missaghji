@@ -101,27 +101,27 @@
       <div class="grid">
         <!-- ÉMETTEUR -->
         <div class="card">
-          <h3>Émetteur</h3>
+          <h3 id="titleEmetteur">Émetteur</h3>
           <div class="row-compact-3">
             <div>
-              <label for="emNum">N°</label>
+              <label for="emNum" id="labelEmNum">N°</label>
               <input id="emNum" inputmode="numeric" placeholder="1 → 999" />
             </div>
             <div style="align-self:end">
               <button class="btn iconbtn" id="emGen" title="Générer"><span>↻</span></button>
             </div>
             <div>
-              <label for="emName">Nom</label>
+              <label for="emName" id="labelEmName">Nom</label>
               <input id="emName" placeholder="NOM ÉMETTEUR (MAJ)" required />
             </div>
           </div>
           <div class="row-compact">
             <div>
-              <label for="emFunc">Fonction</label>
+              <label for="emFunc" id="labelEmFunc">Fonction</label>
               <select id="emFunc" disabled></select>
             </div>
             <div>
-              <label for="emEntity">Entité</label>
+              <label for="emEntity" id="labelEmEntity">Entité</label>
               <select id="emEntity" disabled></select>
             </div>
           </div>
@@ -129,27 +129,27 @@
 
         <!-- RÉCEPTEUR (CORRESPONDANT) -->
         <div class="card">
-          <h3>Récepteur</h3>
+          <h3 id="titleRecepteur">Récepteur</h3>
           <div class="row-compact-3">
             <div>
-              <label for="reNum">N°</label>
+              <label for="reNum" id="labelReNum">N°</label>
               <input id="reNum" inputmode="numeric" placeholder="Numéro" />
             </div>
             <div style="align-self:end">
               <button class="btn iconbtn" id="reGen" title="Générer"><span>↻</span></button>
             </div>
             <div>
-              <label for="reName">Nom (MAJ)</label>
+              <label for="reName" id="labelReName">Nom (MAJ)</label>
               <input id="reName" placeholder="NOM RÉCEPTEUR (MAJ)" required />
             </div>
           </div>
           <div class="row-compact">
             <div>
-              <label for="reFunc">Fonction</label>
+              <label for="reFunc" id="labelReFunc">Fonction</label>
               <select id="reFunc"></select>
             </div>
             <div>
-              <label for="reEntity">Entité</label>
+              <label for="reEntity" id="labelReEntity">Entité</label>
               <select id="reEntity"></select>
             </div>
           </div>
