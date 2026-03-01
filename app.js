@@ -15,7 +15,7 @@
   const ls={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}}, set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
 
   const views={auth:$('view-auth'),app:$('view-app'),history:$('view-history')};
-  const setOptions=(sel,list)=>{ sel.innerHTML=''; list.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);}); };
+  const setOptions=(sel,list)=>{ sel.innerHTML=''; list.forEach(v=>{const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); }); };
   const isBO=e=>BO.includes(e);
 
   // i18n
@@ -76,17 +76,11 @@
     return ['BAO','DELCO'];
   }
   function allowedFunctionsForCounterpart(userEntity){
-    if(userEntity==='BAO'){ // peut parler à DELCO (CCO) ou BO* (CDC..PDS)
-      const boFuncs = Array.from(new Set(BO.flatMap(e=>F_BY_E[e]))); // CDC..PDS
-      return ['CCO', ...boFuncs];
-    }
-    if(BO.includes(userEntity)){ // peut parler à BAO (CEX) ou DELCO (CCO)
-      return ['CEX','CCO'];
-    }
+    if(userEntity==='BAO'){ const boFuncs = Array.from(new Set(BO.flatMap(e=>F_BY_E[e]))); return ['CCO', ...boFuncs]; }
+    if(BO.includes(userEntity)) return ['CEX','CCO'];
     return ['CEX','CCO'];
   }
 
-  // role helpers
   function isEmitter(){ return roleSelect.value==='emetteur'; }
   function ownName(){ return isEmitter() ? emName : reName; }
   function colName(){ return isEmitter() ? reName : emName; }
@@ -103,10 +97,13 @@
     setOptions(ownEntSel(), [u.entity]); ownEntSel().disabled=true; setOptions(ownFuncSel(), F_BY_E[u.entity]); ownFuncSel().disabled=(F_BY_E[u.entity].length===1);
     ownName().value = u.name.toUpperCase(); colName().value='';
 
-    // collaborateur: listes autorisées
+    // collaborateur: listes autorisées + valeur par défaut non bloquante
     const ents = counterpartEntitiesFor(u.entity); setOptions(colEntSel(), ents); colEntSel().disabled=false;
+    // éviter le cas BAO => DELCO par défaut (bloquant). On force un défaut "souple"
+    if(u.entity==='BAO'){ const firstBO = BO[0]; if(ents.includes(firstBO)) colEntSel().value = firstBO; }
+    else if(BO.includes(u.entity)){ colEntSel().value = 'BAO'; }
+    // fonctions autorisées
     const funcs = allowedFunctionsForCounterpart(u.entity); setOptions(colFuncSel(), funcs);
-    // si fonction choisie n'est pas compatible avec entités autorisées, corriger via couplage
     applyCouplingBothWays(u.entity);
     showGenerators();
   }
@@ -115,26 +112,31 @@
 
   function applyCouplingFromEntity(entitySel, funcSel, userEntity){
     const ent=entitySel.value;
-    if(ent==='BAO'){ setOptions(funcSel,['CEX']); funcSel.disabled=true; }
-    else if(ent==='DELCO'){ setOptions(funcSel,['CCO']); funcSel.disabled=true; }
+    if(ent==='BAO'){ setOptions(funcSel,['CEX']); funcSel.disabled=true; entitySel.disabled=false; }
+    else if(ent==='DELCO'){ setOptions(funcSel,['CCO']); funcSel.disabled=true; entitySel.disabled=false; }
     else if(BO.includes(ent)){ // BO -> CDC..PDS
       const allowed=allowedFunctionsForCounterpart(userEntity);
       const boFuncs=Array.from(new Set(BO.flatMap(e=>F_BY_E[e])));
       const final = boFuncs.filter(f=>allowed.includes(f));
-      setOptions(funcSel, final.length?final:['CDC']); funcSel.disabled=false; // fallback sécurité
+      setOptions(funcSel, final.length?final:['CDC']); funcSel.disabled=false; entitySel.disabled=false;
     }
   }
   function applyCouplingFromFunction(funcSel, entitySel, userEntity){
     const fn=funcSel.value; const allowedEnts=counterpartEntitiesFor(userEntity);
-    if(fn==='CEX'){ setOptions(entitySel, ['BAO']); entitySel.disabled=true; }
-    else if(fn==='CCO'){ setOptions(entitySel, ['DELCO']); entitySel.disabled=true; }
+    if(fn==='CEX'){ // ne pas verrouiller l'entité : laisser l'utilisateur changer
+      if(!allowedEnts.includes('BAO')) allowedEnts.unshift('BAO');
+      setOptions(entitySel, allowedEnts); entitySel.value='BAO'; entitySel.disabled=false;
+    }
+    else if(fn==='CCO'){
+      if(!allowedEnts.includes('DELCO')) allowedEnts.unshift('DELCO');
+      setOptions(entitySel, allowedEnts); entitySel.value='DELCO'; entitySel.disabled=false;
+    }
     else { // BO function
       const boOnly = BO.filter(e=>allowedEnts.includes(e));
       setOptions(entitySel, boOnly.length?boOnly:allowedEnts); entitySel.disabled=false;
     }
   }
   function applyCouplingBothWays(userEntity){
-    // 1) prioriser la fonction sélectionnée (si déjà présente) sinon appliquer depuis entité
     const fSel=colFuncSel(), eSel=colEntSel();
     if(fSel.value){ applyCouplingFromFunction(fSel,eSel,userEntity); }
     else { applyCouplingFromEntity(eSel,fSel,userEntity); }
